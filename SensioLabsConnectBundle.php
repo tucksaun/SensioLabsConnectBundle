@@ -27,7 +27,7 @@ class SensioLabsConnectBundle extends Bundle
 {
     public function build(ContainerBuilder $container)
     {
-        if ($container->has('security.authentication.provider.sensiolabs_connect')) {
+        if ($container->hasExtension('security')) {
             $container->getExtension('security')->addSecurityListenerFactory(new ConnectFactory());
             $container->getExtension('security')->addUserProviderFactory(new ConnectInMemoryFactory());
         }
