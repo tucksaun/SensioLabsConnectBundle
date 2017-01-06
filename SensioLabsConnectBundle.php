@@ -12,8 +12,6 @@
 namespace SensioLabs\Bundle\ConnectBundle;
 
 use SensioLabs\Bundle\ConnectBundle\DependencyInjection\CompilerPass\ApiPass;
-use SensioLabs\Bundle\ConnectBundle\DependencyInjection\Security\Factory\ConnectFactory;
-use SensioLabs\Bundle\ConnectBundle\DependencyInjection\Security\UserProvider\ConnectInMemoryFactory;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -27,9 +25,8 @@ class SensioLabsConnectBundle extends Bundle
 {
     public function build(ContainerBuilder $container)
     {
-        if ($container->has('security.authentication.provider.sensiolabs_connect')) {
-            $container->getExtension('security')->addSecurityListenerFactory(new ConnectFactory());
-            $container->getExtension('security')->addUserProviderFactory(new ConnectInMemoryFactory());
+        if ($container->hasExtension('security')) {
+            $container->getExtension('sensio_labs_connect')->setSecurityExtension($container->getExtension('security'));
         }
         $container->addCompilerPass(new ApiPass(), PassConfig::TYPE_AFTER_REMOVING);
     }

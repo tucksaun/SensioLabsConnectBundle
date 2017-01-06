@@ -11,11 +11,14 @@
 
 namespace SensioLabs\Bundle\ConnectBundle\DependencyInjection;
 
+use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use SensioLabs\Bundle\ConnectBundle\DependencyInjection\Security\Factory\ConnectFactory;
+use SensioLabs\Bundle\ConnectBundle\DependencyInjection\Security\UserProvider\ConnectInMemoryFactory;
 
 /**
  * SensioLabsConnectExtension.
@@ -24,6 +27,13 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
  */
 class SensioLabsConnectExtension extends Extension
 {
+    private $securityExtension;
+
+    public function setSecurityExtension(SecurityExtension $extension)
+    {
+        $this->securityExtension = $extension;
+    }
+
     public function load(array $configs, ContainerBuilder $container)
     {
         $processor = new Processor();
@@ -32,7 +42,13 @@ class SensioLabsConnectExtension extends Extension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('connect.xml');
         if ($config['enable_security']) {
+            if (!$this->securityExtension) {
+                throw new \LogicException("SecurityBundle does not seem registered.");
+            }
+
             $loader->load('security.xml');
+            $this->securityExtension->addSecurityListenerFactory(new ConnectFactory());
+            $this->securityExtension->addUserProviderFactory(new ConnectInMemoryFactory());
         }
 
         $container->getDefinition('sensiolabs_connect.oauth_consumer')
